@@ -1,6 +1,6 @@
 {
   "name": "cortico-world-music-abc",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "让Coo用ABC谱创作音乐。",
   "license": "MIT",
@@ -12,7 +12,7 @@
   "engines": { "node": ">=22" },
   "main": "./src/index.js",
   "exports": { ".": "./src/index.js" },
-  "files": ["src", "dist", "assets/manifest.json", "assets/GeneralUser-GS-LICENSE.txt", "licenses", "describe.json", "README.md", "README_zh.md", "CHANGELOG.md", "THIRD_PARTY.md"],
+  "files": ["src", "dist", "assets/icon.png", "assets/manifest.json", "assets/GeneralUser-GS-LICENSE.txt", "licenses", "describe.json", "README.md", "README_zh.md", "CHANGELOG.md", "THIRD_PARTY.md"],
   "scripts": {
     "build": "node tools/build.mjs",
     "describe:extension": "node tools/describe.mjs",
@@ -24,5 +24,5 @@
   },
   "dependencies": { "abcjs": "6.7.2", "spessasynth_core": "4.3.22" },
   "devDependencies": { "esbuild": "0.28.2" },
-  "cortico": { "kind": "world", "api": 6, "displayName": "ABC 音乐", "tags": ["creative"], "webUiClient": "dist/webui.js", "describe": "describe.json" }
+  "cortico": { "kind": "world", "api": 6, "displayName": "ABC 音乐", "icon": "assets/icon.png", "tags": ["creative"], "webUiClient": "dist/webui.js", "describe": "describe.json" }
 }

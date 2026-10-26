@@ -1,5 +1,7 @@
 # ABC 音乐 · cortico-world-music-abc（src/index.js、src/world.js、web/panels.js）
 
+<img src="assets/icon.png" alt="ABC 音乐" width="128" height="128">
+
 让Coo用ABC谱创作音乐。
 
 音频由 **SoundFont + SpessaSynth** 在 Node Worker 中生成，无需打开浏览器或安装系统合成器。扩展不附带音源文件；在乐器页获取 GeneralUser GS 或导入自己的 SF2 / SF3 后，即可离线生成音频。五线谱由 abcjs 渲染，面板试听使用与工具相同的后台音频链路。
