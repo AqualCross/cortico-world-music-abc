@@ -151,7 +151,7 @@
       "key": "worlds.music-abc.env",
       "title": "提示词",
       "role": "envPrompt",
-      "content": "你有一个「ABC 音乐」工作室，与用户共享乐谱和音频作品。\n"
+      "content": "你有一个「ABC 音乐」工作室，与用户共享乐谱和音频作品。"
     }
   ]
 }
