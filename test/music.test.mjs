@@ -206,7 +206,7 @@ test('score updates are pushed, and closing a panel removes its subscription', a
 test('generated describe matches model-facing contracts and prompt', () => {
   const file = JSON.parse(readFileSync(new URL('../describe.json', import.meta.url), 'utf8'));
   assert.deepEqual(file.tools, def.describe.tools); assert.deepEqual(file.events, def.describe.events);
-  assert.match(file.prompts[0].content, /abc_music_play/);
+  assert.equal(file.prompts[0].content, readFileSync(new URL('../src/ENV_PROMPT.md', import.meta.url), 'utf8'));
 });
 test('download metadata pins the asset and retains its license without shipping samples', () => {
   const manifest = JSON.parse(readFileSync(new URL('../assets/manifest.json', import.meta.url), 'utf8'));
