@@ -1,0 +1,157 @@
+{
+  "tools": [
+    {
+      "name": "abc_music_score",
+      "tags": [
+        "act"
+      ],
+      "description": "Validate, save or read ABC scores. Saved scores appear as sheet music in the Scores panel. Before editing, get the current score and save with expectedRevision. Audio rendering is separate. Validation and saving work without installed SoundFonts.",
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "check",
+              "save",
+              "get",
+              "list"
+            ]
+          },
+          "abc": {
+            "type": "string",
+            "maxLength": 48000,
+            "description": "One complete ABC tune with X/M/L/K headers; T/Q recommended. Use V: for independent voices and [CEG] for chords. Quoted chord names are labels and do not create accompaniment."
+          },
+          "id": {
+            "type": "string"
+          },
+          "expectedRevision": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "instrument": {
+            "type": "string",
+            "description": "Preset ID from abc_music_control action=instruments. Selects the SoundFont and default MIDI patch. Explicit ABC %%MIDI program overrides individual voices within that SoundFont."
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "summary": {
+        "zh": "检查、保存与读取 ABC 曲谱和版本。",
+        "en": "Validate, save and read ABC scores."
+      }
+    },
+    {
+      "name": "abc_music_play",
+      "tags": [
+        "act"
+      ],
+      "description": "Render a WAV in the background using an installed SoundFont. Supply exactly one of score or abc. Direct ABC is saved after rendering succeeds. Works retain the ABC snapshot and MIDI. return attaches audio to the tool receipt; event emits music-abc.played. Playback and sending use other tools. Ask the user to obtain or import a SoundFont in Instruments when none is installed.",
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "score": {
+            "type": "string",
+            "description": "Saved score ID."
+          },
+          "abc": {
+            "type": "string",
+            "maxLength": 48000,
+            "description": "One complete ABC tune with X/M/L/K headers; T/Q recommended. Use V: for independent voices and [CEG] for chords. Quoted chord names are labels and do not create accompaniment."
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "instrument": {
+            "type": "string",
+            "description": "Preset ID from abc_music_control action=instruments. Selects the SoundFont and default MIDI patch. Explicit ABC %%MIDI program overrides individual voices within that SoundFont."
+          },
+          "delivery": {
+            "type": "string",
+            "enum": [
+              "return",
+              "event"
+            ]
+          }
+        }
+      },
+      "summary": {
+        "zh": "把 ABC 曲谱渲染为采样音源 WAV，并保存作品。",
+        "en": "Render ABC to sampled audio and retain a score snapshot."
+      }
+    },
+    {
+      "name": "abc_music_control",
+      "tags": [
+        "act"
+      ],
+      "description": "Read ABC Music status, list installed SoundFont presets, or set the default instrument and audio delivery. Use instruments before choosing a preset ID. SoundFonts are obtained or imported by the user in the Instruments panel.",
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "status",
+              "instruments",
+              "set"
+            ]
+          },
+          "instrument": {
+            "type": "string",
+            "description": "Preset ID from abc_music_control action=instruments. Selects the SoundFont and default MIDI patch. Explicit ABC %%MIDI program overrides individual voices within that SoundFont."
+          },
+          "delivery": {
+            "type": "string",
+            "enum": [
+              "return",
+              "event"
+            ]
+          },
+          "eventDelivery": {
+            "type": "string",
+            "enum": [
+              "archive",
+              "model"
+            ]
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "summary": {
+        "zh": "列出音源预设、查看状态或设置乐器与交付方式。",
+        "en": "List SoundFont presets, read status or configure instruments and delivery."
+      }
+    }
+  ],
+  "events": [
+    {
+      "type": "music-abc.played",
+      "description": {
+        "zh": "ABC 演奏完成：WAV 附件、曲谱版本与文件路径。",
+        "en": "ABC rendering completed, with a WAV attachment and score revision."
+      },
+      "trigger": "debounce"
+    }
+  ],
+  "prompts": [
+    {
+      "key": "worlds.music-abc.env",
+      "title": "提示词",
+      "role": "envPrompt",
+      "content": "你有一个「ABC 音乐」工作室。用标准 ABC 记谱写作，再用采样音源生成音频。\n\n建议流程：abc_music_score action=check 检查 → action=save 保存 → abc_music_play score=<id> 生成。\n也可以直接 abc_music_play abc=<完整ABC>，成功后会自动保存曲谱和音频作品。\n用户可以在乐谱面板看到你的作品和五线谱。修改已有曲谱时先 get，保存时携带 id 和 expectedRevision。\n\n一份谱子只写一首曲子，必须有 X:、M:、L:、K:，建议同时写 T: 和 Q:。\n用拍长写节奏，如 L:1/8、Q:1/4=88；不要把音符时值手算成秒。\n旋律与低音使用 V: 独立声部；和弦音用 [CEG]，不同声部的长音各自保持。\n支持休止 z、延音线 C-C、连奏 (CDE)、附点节奏 C>D、三连音 (3CDE、反复 |: :|、!p! / !mf! / !f! 等力度。\n引号中的 \"Am\" 等和弦标签仅显示，不自动配伴奏；请明确写出和弦音或伴奏声部。\n先用 abc_music_control action=instruments 列出已安装音源及全部预设，instrument 使用返回的预设 ID，指定音源文件和默认音色。ABC 中明确的 %%MIDI program 可为声部分配该文件中的独立 GM 音色（从 0 开始）。一段作品使用一个音源文件。\n扩展不随包附带音源。没有音源时仍可检查和保存谱子；生成音频前请用户在乐器页获取 GeneralUser GS 或导入 SF2 / SF3。不要为用户自行下载其他音源。\n第一版为采样音源演奏，不把滑弦、击勾弦或谱面文字当作已实现的真实吉他技法。\n每份最多 48000 字符、展开反复后 12000 个音符、6 分钟；大作品按乐段保存。\n\n生成的 WAV 作为工具附件或 music-abc.played 事件交出；需要外放或发送时交给对应工具。\n"
+    }
+  ]
+}
