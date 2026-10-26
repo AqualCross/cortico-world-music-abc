@@ -1,5 +1,7 @@
 import { STYLE } from './style.js';
 
+const tagNames = { read: ['读取', 'Read'], write: ['写入', 'Write'], speak: ['发言', 'Speak'], act: ['行动', 'Act'], flow: ['流程', 'Flow'], snapshot: ['快照', 'Snapshot'] };
+
 const words = {
   timing: ['保存的工具说明在下次会话构建工具表时生效。', 'Saved tool text is used the next time a session builds its tool definitions.'],
   save: ['保存修改', 'Save changes'], refresh: ['刷新', 'Refresh'], reset: ['恢复默认', 'Restore defaults'],
@@ -22,7 +24,8 @@ const element = (tag, className = '', text = '') => {
 };
 
 export function mountTools(ctx) {
-  const t = key => words[key][ctx.language?.startsWith('zh') ? 0 : 1];
+  const chinese = ctx.language?.startsWith('zh'), languageIndex = chinese ? 0 : 1;
+  const t = key => words[key][languageIndex];
   const root = element('section', 'abc-music am-tooltext'), style = element('style'); style.textContent = STYLE;
   const toolbar = element('div', 'am-row am-tooltext-toolbar'), search = element('input'), status = element('div', 'am-status');
   const warnings = element('div', 'am-tooltext-warnings'), list = element('div', 'am-list'), empty = element('div', 'am-empty', t('empty'));
@@ -83,14 +86,17 @@ export function mountTools(ctx) {
     for (const warning of state.warnings) warnings.append(element('p', 'am-status bad', `${warning.error ? t('invalidFile') : t('stale')} ${warning.layer}: ${warning.error || `${warning.tool}${warning.path}`}`));
     for (const tool of state.tools) {
       const card = element('details', 'am-tool-card'), summary = element('summary', 'am-tool-summary');
-      const name = element('code', '', tool.name), brief = element('span', 'muted', tool.description), source = element('span', 'am-tool-source');
-      summary.append(name, brief, source); card.append(summary);
+      const heading = element('span', 'am-tool-heading'), name = element('code', '', tool.name);
+      const tags = tool.tags.map(tag => tagNames[tag]?.[languageIndex] ?? tag);
+      heading.append(name, ...tags.map(tag => element('span', 'am-tool-tag', tag)));
+      const brief = element('span', 'muted', typeof tool.summary === 'string' ? tool.summary : tool.summary[chinese ? 'zh' : 'en']);
+      const source = element('span', 'am-tool-source');
+      summary.append(heading, brief, source); card.append(summary);
       const memoKey = `tool:${tool.name}`; card.open = ctx.memo.get(memoKey, false);
       on(card, 'toggle', () => ctx.memo.set(memoKey, card.open));
       const body = element('div', 'am-tool-body'), fields = element('div', 'am-tool-fields');
       const toolControls = [];
-      const updateSummary = () => {
-        brief.textContent = toolControls.find(control => control.field.path === '/description').input.value;
+      const updateSource = () => {
         source.textContent = toolControls.some(control => control.input.value !== control.field.inheritedText) ? t('sourceDeployment') : tool.fields.some(field => field.inheritedSource === 'package') ? t('sourcePackage') : t('sourceDefault');
       };
       for (const field of tool.fields) {
@@ -101,19 +107,21 @@ export function mountTools(ctx) {
         label.htmlFor = inputId;
         label.textContent = field.path === '/description' ? t('toolDescription')
           : field.path === '/parameters/description' ? t('parametersDescription')
-          : field.keyword === 'description' && ctx.language?.startsWith('zh') ? `${field.location} 参数说明`
+          : field.keyword === 'description' && chinese ? `${field.location} 参数说明`
           : `${field.location} · ${t(field.keyword)}`;
         const defaultView = element('details', 'am-tool-default'), defaultText = element('pre', '', field.inheritedText || t('noDescription'));
         defaultView.append(element('summary', '', t('default')), defaultText);
-        const restore = action(t('reset'), () => { input.value = field.inheritedText; updateSummary(); update(); say(dirty() ? t('dirty') : ''); });
+        const restore = action(t('reset'), () => { input.value = field.inheritedText; updateSource(); update(); say(dirty() ? t('dirty') : ''); });
         const footer = element('div', 'am-row am-tool-field-footer'); footer.append(defaultView, restore);
         box.append(label, input, footer); fields.append(box);
         const control = { input, field, reset: restore, tool: tool.name }; controls.push(control); toolControls.push(control);
-        on(input, 'input', () => { updateSummary(); update(); say(dirty() ? t('dirty') : ''); filter(); });
+        on(input, 'input', () => { updateSource(); update(); say(dirty() ? t('dirty') : ''); filter(); });
       }
-      body.append(element('div', 'muted', `tags: ${tool.tags.join(', ')}${['barrierAfter', 'endsTurn', 'interruptible'].filter(key => tool[key]).map(key => ` · ${key}`).join('')}`), fields);
-      card.append(body); list.append(card); updateSummary();
-      cards.push({ node: card, searchText: () => `${tool.name} ${toolControls.map(control => `${control.field.location} ${control.input.value}`).join(' ')}` });
+      const flags = ['barrierAfter', 'endsTurn', 'interruptible'].filter(key => tool[key]);
+      if (flags.length) body.append(element('div', 'muted', flags.join(' · ')));
+      body.append(fields);
+      card.append(body); list.append(card); updateSource();
+      cards.push({ node: card, searchText: () => `${tool.name} ${brief.textContent} ${tags.join(' ')} ${toolControls.map(control => `${control.field.location} ${control.input.value}`).join(' ')}` });
     }
     filter(); update();
   }
