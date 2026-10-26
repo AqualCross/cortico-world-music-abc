@@ -11,11 +11,10 @@ const words = {
   default: ['默认文字', 'Default text'], noDescription: ['尚未声明说明', 'No description declared'],
   description: ['说明', 'Description'], title: ['标题', 'Title'], toolDescription: ['工具描述', 'Tool description'],
   parametersDescription: ['参数整体说明', 'Description of all parameters'],
-  schema: ['完整 JSON Schema', 'Full JSON Schema'], empty: ['没有匹配的工具', 'No matching tools'],
+  empty: ['没有匹配的工具', 'No matching tools'],
   sourceDefault: ['扩展默认', 'Extension default'], sourcePackage: ['bot 包覆盖', 'Bot package override'], sourceDeployment: ['部署覆盖', 'Deployment override'],
   invalidFile: ['覆盖文件无法读取，使用上层默认文字。', 'The override file cannot be read; inherited text is used.'],
   stale: ['以下覆盖字段已不存在，未应用：', 'These override fields no longer exist and are not applied:'],
-  copy: ['复制定义', 'Copy definition'], copied: ['工具定义已复制。', 'Tool definition copied.'],
 };
 
 const element = (tag, className = '', text = '') => {
@@ -88,17 +87,9 @@ export function mountTools(ctx) {
       summary.append(name, brief, source); card.append(summary);
       const memoKey = `tool:${tool.name}`; card.open = ctx.memo.get(memoKey, false);
       on(card, 'toggle', () => ctx.memo.set(memoKey, card.open));
-      const body = element('div', 'am-tool-body'), fields = element('div', 'am-tool-fields'), raw = element('details', 'am-tool-raw'), json = element('pre');
-      const modelSchema = { name: tool.name, description: tool.description, parameters: structuredClone(tool.parameters) };
+      const body = element('div', 'am-tool-body'), fields = element('div', 'am-tool-fields');
       const toolControls = [];
-      const renderRaw = () => {
-        const draft = structuredClone(modelSchema);
-        for (const control of toolControls) {
-          if (control.input.value === control.field.text) continue;
-          const keys = control.field.path.slice(1).split('/').map(key => key.replaceAll('~1', '/').replaceAll('~0', '~')), last = keys.pop();
-          let node = draft; for (const key of keys) node = node[key]; node[last] = control.input.value;
-        }
-        json.textContent = JSON.stringify(draft, null, 2);
+      const updateSummary = () => {
         brief.textContent = toolControls.find(control => control.field.path === '/description').input.value;
         source.textContent = toolControls.some(control => control.input.value !== control.field.inheritedText) ? t('sourceDeployment') : tool.fields.some(field => field.inheritedSource === 'package') ? t('sourcePackage') : t('sourceDefault');
       };
@@ -114,15 +105,14 @@ export function mountTools(ctx) {
           : `${field.location} · ${t(field.keyword)}`;
         const defaultView = element('details', 'am-tool-default'), defaultText = element('pre', '', field.inheritedText || t('noDescription'));
         defaultView.append(element('summary', '', t('default')), defaultText);
-        const restore = action(t('reset'), () => { input.value = field.inheritedText; renderRaw(); update(); say(dirty() ? t('dirty') : ''); });
+        const restore = action(t('reset'), () => { input.value = field.inheritedText; updateSummary(); update(); say(dirty() ? t('dirty') : ''); });
         const footer = element('div', 'am-row am-tool-field-footer'); footer.append(defaultView, restore);
         box.append(label, input, footer); fields.append(box);
         const control = { input, field, reset: restore, tool: tool.name }; controls.push(control); toolControls.push(control);
-        on(input, 'input', () => { renderRaw(); update(); say(dirty() ? t('dirty') : ''); filter(); });
+        on(input, 'input', () => { updateSummary(); update(); say(dirty() ? t('dirty') : ''); filter(); });
       }
-      raw.append(element('summary', '', t('schema')), action(t('copy'), async () => { await navigator.clipboard.writeText(json.textContent); say(t('copied')); }), json);
-      body.append(element('div', 'muted', `tags: ${tool.tags.join(', ')}${['barrierAfter', 'endsTurn', 'interruptible'].filter(key => tool[key]).map(key => ` · ${key}`).join('')}`), fields, raw);
-      card.append(body); list.append(card); renderRaw();
+      body.append(element('div', 'muted', `tags: ${tool.tags.join(', ')}${['barrierAfter', 'endsTurn', 'interruptible'].filter(key => tool[key]).map(key => ` · ${key}`).join('')}`), fields);
+      card.append(body); list.append(card); updateSummary();
       cards.push({ node: card, searchText: () => `${tool.name} ${toolControls.map(control => `${control.field.location} ${control.input.value}`).join(' ')}` });
     }
     filter(); update();
