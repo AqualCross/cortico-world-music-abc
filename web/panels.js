@@ -4,10 +4,7 @@ import { followScore } from './score-follow.js';
 import { scoreTitle, withScoreTitle } from './score-title.js';
 
 const words = {
-  scores: ['乐谱', 'Scores'], works: ['作品', 'Works'], instruments: ['乐器', 'Instruments'],
-  scoresDesc: ['写下旋律，让每个声部都有自己的声音。', 'A score for every melody, a voice for every part.'],
-  worksDesc: ['保存下来的演奏，以及生成那一刻的乐谱。', 'Saved performances and the scores they were made from.'],
-  instrumentsDesc: ['采样音源，让同一份谱子有不同的声音。', 'Sampled instruments, different voices for the same score.'],
+  works: ['作品', 'Works'],
   scoreSelect: ['选择乐谱', 'Select score'], unsaved: ['未保存的乐谱', 'Unsaved score'], instrument: ['演奏乐器', 'Instrument'],
   new: ['新建', 'New'], save: ['保存乐谱', 'Save score'], preview: ['试听', 'Listen'], render: ['生成作品', 'Render audio'],
   title: ['乐谱标题', 'Score title'], source: ['ABC谱', 'ABC score'],
@@ -43,12 +40,10 @@ function button(ctx, label, action, className = '') {
 }
 function field(label, control, wide = false) { const node = el('label', `am-field${wide ? ' wide' : ''}`); node.append(el('span', '', label), control); return node; }
 function option(value, label) { const node = el('option', '', label); node.value = value; return node; }
-function frame(ctx, title, desc, eyebrow) {
-  const t = tr(ctx), root = el('section', 'abc-music');
+function frame(ctx) {
+  const root = el('section', 'abc-music');
   const style = el('style'); style.textContent = STYLE; root.append(style);
-  const intro = el('div', 'am-intro'), left = el('div');
-  left.append(el('div', 'eyebrow', eyebrow), el('h2', '', t(title)), el('p', 'muted', t(desc)));
-  intro.append(left, el('span', 'am-chip', 'SoundFont · SpessaSynth')); root.append(intro); ctx.root.append(root);
+  ctx.root.append(root);
   return root;
 }
 function player(ctx, root) {
@@ -75,7 +70,7 @@ function subscribe(ctx, action) {
 const blankScore = instrument => ({ abc: 'X:1\nT:新乐谱\nM:4/4\nL:1/8\nQ:1/4=100\nK:C\nz8 |]', title: '新乐谱', instrument });
 
 function scoresPanel(ctx) {
-  const t = tr(ctx), root = frame(ctx, 'scores', 'scoresDesc', 'ABC MUSIC / SCORE STUDIO');
+  const t = tr(ctx), root = frame(ctx);
   const toolbar = el('div', 'am-toolbar'), scoreSelect = el('select'), instrument = el('select'), title = el('input');
   scoreSelect.setAttribute('aria-label', t('scoreSelect')); instrument.setAttribute('aria-label', t('instrument')); title.maxLength = 160;
   toolbar.append(field(t('scoreSelect'), scoreSelect, true), field(t('title'), title, true), field(t('instrument'), instrument));
@@ -237,7 +232,7 @@ function scoresPanel(ctx) {
 }
 
 function worksPanel(ctx) {
-  const t = tr(ctx), root = frame(ctx, 'works', 'worksDesc', 'ABC MUSIC / RECORDINGS');
+  const t = tr(ctx), root = frame(ctx);
   const toolbar = el('div', 'am-row'), count = el('span', 'muted grow');
   toolbar.style.marginBottom = '16px'; toolbar.append(count, button(ctx, t('openFolder'), async () => {
     const result = await ctx.invoke('openFolder', []);
@@ -287,7 +282,7 @@ function worksPanel(ctx) {
 }
 
 function instrumentsPanel(ctx) {
-  const t = tr(ctx), root = frame(ctx, 'instruments', 'instrumentsDesc', 'ABC MUSIC / SOUND LIBRARY');
+  const t = tr(ctx), root = frame(ctx);
   const toolbar = el('div', 'am-row am-librarytools'), search = el('input'), info = el('p', 'muted am-librarypath');
   search.type = 'search'; search.placeholder = t('fontSearch'); search.setAttribute('aria-label', t('fontSearch')); search.className = 'grow';
   const importButton = button(ctx, t('importFont'), async () => {
