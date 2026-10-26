@@ -1,6 +1,6 @@
 {
   "name": "cortico-world-music-abc",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "让Coo用ABC谱创作音乐。",
   "license": "MIT",

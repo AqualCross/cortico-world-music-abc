@@ -1,5 +1,9 @@
 # 更新日志（src/index.js、src/world.js、web/panels.js）
 
+## 0.1.1
+
+- 新增大肥鱼弹吉他的扩展图标。
+
 ## 0.1.0
 
 - 独立的「ABC 音乐」World，支持与旧琴房并存。
