@@ -11,7 +11,7 @@ export const STYLE = `
 .abc-music{--am-accent:#5650ce;--am-muted:color-mix(in srgb,currentColor 56%,transparent);--am-line:color-mix(in srgb,currentColor 14%,transparent);font-size:14px;line-height:1.6;max-width:1200px;margin:0 auto;padding:16px 0 30px}
 .abc-music *{box-sizing:border-box}.abc-music button,.abc-music select,.abc-music input,.abc-music textarea{font:inherit;color:inherit}
 .abc-music button{border:1px solid var(--am-line);background:transparent;border-radius:8px;padding:7px 13px;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s}
-.abc-music button:hover{background:color-mix(in srgb,var(--am-accent) 8%,transparent);border-color:var(--am-accent)}.abc-music button.primary{background:var(--am-accent);border-color:var(--am-accent);color:#fff}.abc-music button.danger{color:#ba3b45}.abc-music button:disabled{opacity:.45;cursor:wait}
+.abc-music button:where(:enabled):hover{background:color-mix(in srgb,var(--am-accent) 8%,transparent);border-color:var(--am-accent)}.abc-music button.primary{background:var(--am-accent);border-color:var(--am-accent);color:#fff}.abc-music button.danger{color:#ba3b45}.abc-music button:disabled{opacity:.45;cursor:default}
 .abc-music button:focus-visible,.abc-music select:focus-visible,.abc-music input:focus-visible,.abc-music textarea:focus-visible{outline:2px solid var(--am-accent);outline-offset:3px}
 .abc-music h3{font-size:16px;margin:0}.abc-music p{margin:0}.abc-music .muted{color:var(--am-muted);font-size:12px}
 .abc-music .am-row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.abc-music .grow{flex:1}
