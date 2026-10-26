@@ -75,8 +75,8 @@ function scoresPanel(ctx) {
   const toolbar = el('div', 'am-toolbar'), scoreSelect = el('select'), instrument = el('select'), title = el('input');
   scoreSelect.setAttribute('aria-label', t('scoreSelect')); instrument.setAttribute('aria-label', t('instrument')); title.maxLength = 160;
   toolbar.append(field(t('scoreSelect'), scoreSelect, true), field(t('title'), title, true), field(t('instrument'), instrument));
-  const newButton = button(ctx, t('new'), newScore), saveButton = button(ctx, t('save'), save), previewButton = button(ctx, t('preview'), preview), renderButton = button(ctx, t('render'), render, 'primary');
-  const source = el('section', 'am-source'), sourceHead = el('div', 'am-sourcehead'), sourceBody = el('div', 'am-sourcebody'), editor = el('textarea'), sourceActions = el('div', 'am-row am-sourceactions'), dirtyLabel = el('span', 'muted');
+  const newButton = button(ctx, t('new'), newScore), saveButton = button(ctx, t('save'), save), previewButton = button(ctx, t('preview'), preview), renderButton = button(ctx, t('render'), render);
+  const source = el('section', 'am-source'), sourceLabel = el('div', 'am-row am-sourcelabel'), editor = el('textarea'), sourceActions = el('div', 'am-row am-sourceactions'), dirtyLabel = el('span', 'muted');
   source.setAttribute('aria-label', t('source'));
   editor.spellcheck = false; editor.setAttribute('aria-label', t('source'));
   const deleteButton = button(ctx, t('removeScore'), async () => {
@@ -85,12 +85,12 @@ function scoresPanel(ctx) {
     state.id = ''; state.revision = ''; state.savedAbc = ''; state.savedTitle = ''; state.savedInstrument = '';
     await reload(); stash();
   }, 'danger');
-  sourceHead.append(el('h3', 'grow', t('source')), dirtyLabel);
-  sourceActions.append(newButton, saveButton, previewButton, renderButton, el('span', 'grow'), button(ctx, t('check'), check), deleteButton);
-  sourceBody.append(toolbar, editor, el('p', 'am-help', t('sourceHelp')), sourceActions);
-  const status = el('div', 'am-status'); status.setAttribute('role', 'status'); sourceBody.append(status);
-  const playback = player(ctx, sourceBody);
-  source.append(sourceHead, sourceBody); root.append(source);
+  sourceLabel.append(el('span', 'grow', t('source')), dirtyLabel);
+  const status = el('div', 'am-status'); status.setAttribute('role', 'status');
+  sourceActions.append(newButton, saveButton, previewButton, renderButton, button(ctx, t('check'), check), deleteButton);
+  source.append(sourceLabel, toolbar, editor, el('p', 'am-help', t('sourceHelp')), sourceActions, status);
+  const playback = player(ctx, source);
+  root.append(source);
   const documentBox = el('div', 'am-document'), paper = el('div', 'am-paper'), paperbar = el('div', 'am-paperbar'), paperMeta = el('span');
   paper.setAttribute('aria-label', ctx.language === 'en' ? 'Sheet music' : '五线谱');
   paperbar.append(paperMeta); documentBox.append(paper, paperbar); root.append(documentBox);

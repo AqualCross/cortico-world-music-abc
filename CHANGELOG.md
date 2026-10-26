@@ -4,13 +4,13 @@
 
 - 新增工具页，可编辑工具描述和各层参数说明，查看继承的默认文字，恢复单个字段或全部部署覆盖。保存后的文字在下次会话构建工具表时读取。
 - 工具标题显示本地化分类标签和扩展市场摘要；说明标签使用页面字体，禁用按钮使用普通光标。
-- 精简环境提示词，移除乐谱面板中的重复标题。
+- 精简环境提示词和乐谱编辑区，移除重复标题、编辑区外框和分隔栏，操作按钮改为无边框文字样式。
 
 ### English
 
 - Added a Tools panel to edit tool and parameter descriptions, inspect inherited text, and restore individual fields or all deployment overrides. Saved text is used the next time a session builds its tool definitions.
 - Tool headings use localized category tags and extension market summaries. Description labels inherit the page font; disabled buttons use the default pointer.
-- Shortened the environment prompt and removed repeated headings from the Scores panel.
+- Shortened the environment prompt and simplified the Scores editor: removed repeated headings, the outer frame and dividers, and changed its actions to borderless text buttons.
 
 ## 0.1.1
 
