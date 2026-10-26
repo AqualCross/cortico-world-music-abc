@@ -1,14 +1,14 @@
 import abcjs from 'abcjs';
 import { STYLE } from './style.js';
 import { followScore } from './score-follow.js';
-import { scoreTitle, withScoreTitle } from './score-title.js';
+import { scoreTitle } from './score-title.js';
 import { mountTools } from './tool-text-panel.js';
 
 const words = {
   works: ['作品', 'Works'],
   scoreSelect: ['选择乐谱', 'Select score'], unsaved: ['未保存的乐谱', 'Unsaved score'], instrument: ['演奏乐器', 'Instrument'],
   new: ['新建', 'New'], save: ['保存乐谱', 'Save score'], preview: ['试听', 'Listen'], render: ['生成作品', 'Render audio'],
-  title: ['乐谱标题', 'Score title'], source: ['ABC谱', 'ABC score'],
+  source: ['ABC谱', 'ABC score'],
   check: ['检查乐谱', 'Validate'], refresh: ['刷新', 'Refresh'], remove: ['删除', 'Delete'], current: ['当前默认', 'Default'], select: ['设为默认', 'Set default'],
   generating: ['正在生成采样音频…', 'Rendering sampled audio…'], saved: ['乐谱已保存。', 'Score saved.'], rendered: ['作品已生成，可在作品面板查看。', 'Audio saved to Works.'],
   sourceHelp: ['V: 分声部 · [CEG] 写和弦 · !p! / !f! 写力度 · 引号和弦仅作标注', 'V: voices · [CEG] chords · !p! / !f! dynamics · quoted chord names are labels'],
@@ -68,13 +68,13 @@ function downloadBlob(blob, name) {
 function subscribe(ctx, action) {
   ctx.own(ctx.stream({ message(raw) { try { const data = JSON.parse(raw); if (data.t === 'changed') void action().catch(() => {}); } catch {} } }));
 }
-const blankScore = instrument => ({ abc: 'X:1\nT:新乐谱\nM:4/4\nL:1/8\nQ:1/4=100\nK:C\nz8 |]', title: '新乐谱', instrument });
+const blankScore = instrument => ({ abc: 'X:1\nT:新乐谱\nM:4/4\nL:1/8\nQ:1/4=100\nK:C\nz8 |]', instrument });
 
 function scoresPanel(ctx) {
   const t = tr(ctx), root = frame(ctx);
-  const toolbar = el('div', 'am-toolbar'), scoreSelect = el('select'), instrument = el('select'), title = el('input');
-  scoreSelect.setAttribute('aria-label', t('scoreSelect')); instrument.setAttribute('aria-label', t('instrument')); title.maxLength = 160;
-  toolbar.append(field(t('scoreSelect'), scoreSelect, true), field(t('title'), title, true), field(t('instrument'), instrument));
+  const toolbar = el('div', 'am-toolbar'), scoreSelect = el('select'), instrument = el('select');
+  scoreSelect.setAttribute('aria-label', t('scoreSelect')); instrument.setAttribute('aria-label', t('instrument'));
+  toolbar.append(field(t('scoreSelect'), scoreSelect, true), field(t('instrument'), instrument));
   const newButton = button(ctx, t('new'), newScore), saveButton = button(ctx, t('save'), save), previewButton = button(ctx, t('preview'), preview), renderButton = button(ctx, t('render'), render);
   const source = el('section', 'am-source'), sourceLabel = el('div', 'am-row am-sourcelabel'), editor = el('textarea'), sourceActions = el('div', 'am-row am-sourceactions'), dirtyLabel = el('span', 'muted');
   source.setAttribute('aria-label', t('source'));
@@ -82,7 +82,7 @@ function scoresPanel(ctx) {
   const deleteButton = button(ctx, t('removeScore'), async () => {
     if (!state.id || !await ctx.ui.confirm({ title: t('deleteTitle'), body: t('deleteBody'), danger: true })) return;
     await ctx.invoke('remove', [state.id]);
-    state.id = ''; state.revision = ''; state.savedAbc = ''; state.savedTitle = ''; state.savedInstrument = '';
+    state.id = ''; state.revision = ''; state.savedAbc = ''; state.savedInstrument = '';
     await reload(); stash();
   }, 'danger');
   sourceLabel.append(el('span', 'grow', t('source')), dirtyLabel);
@@ -94,7 +94,7 @@ function scoresPanel(ctx) {
   const documentBox = el('div', 'am-document'), paper = el('div', 'am-paper'), paperbar = el('div', 'am-paperbar'), paperMeta = el('span');
   paper.setAttribute('aria-label', ctx.language === 'en' ? 'Sheet music' : '五线谱');
   paperbar.append(paperMeta); documentBox.append(paper, paperbar); root.append(documentBox);
-  let state = { id: '', revision: '', abc: '', title: '', instrument: '', savedAbc: '', savedTitle: '', savedInstrument: '' };
+  let state = { id: '', revision: '', abc: '', instrument: '', savedAbc: '', savedInstrument: '' };
   let items = [], busy = false, timer = 0, follower = null, animation = 0, hasLoaded = false, localSequence = 0;
   let available = new Set(), fonts = [], aliases = {}, defaultInstrument = '';
   const controls = () => {
@@ -114,10 +114,10 @@ function scoresPanel(ctx) {
     if (value && !available.has(value)) instrument.append(option(value, `${t('missingPreset')} · ${value}`));
     instrument.value = value || ''; controls();
   }
-  const dirty = () => editor.value.trim() !== state.savedAbc || title.value !== state.savedTitle || instrument.value !== state.savedInstrument;
+  const dirty = () => editor.value.trim() !== state.savedAbc || instrument.value !== state.savedInstrument;
   const say = (text, bad = false) => { status.textContent = text; status.classList.toggle('bad', bad); };
   const stash = () => {
-    ctx.memo.set('draft', { ...state, abc: editor.value, title: title.value, instrument: instrument.value });
+    ctx.memo.set('draft', { ...state, abc: editor.value, instrument: instrument.value });
     dirtyLabel.textContent = dirty() ? t('dirty') : (state.id ? t('saved') : t('ready'));
     deleteButton.disabled = !state.id || busy;
   };
@@ -149,15 +149,15 @@ function scoresPanel(ctx) {
     localSequence++;
     next = { ...next, instrument: aliases[next.instrument] || next.instrument || defaultInstrument };
     if (next.savedInstrument) next.savedInstrument = aliases[next.savedInstrument] || next.savedInstrument;
-    state = { id: next.id || '', revision: next.revision || '', savedAbc: next.id ? next.abc : '', savedTitle: next.id ? next.title : '', savedInstrument: next.id ? next.instrument : '', ...next };
-    editor.value = state.abc; title.value = state.title; fillInstruments(state.instrument); scoreSelect.value = state.id; draw();
+    state = { id: next.id || '', revision: next.revision || '', savedAbc: next.id ? next.abc : '', savedInstrument: next.id ? next.instrument : '', ...next };
+    editor.value = state.abc; fillInstruments(state.instrument); scoreSelect.value = state.id; draw();
   }
   async function canReplace() { return !dirty() || await ctx.ui.confirm({ title: t('switchTitle'), body: t('switchBody') }); }
   async function newScore() {
     if (!await canReplace()) return;
     setEditor(blankScore(instrument.value)); editor.focus();
   }
-  const input = () => ({ abc: editor.value, title: title.value, instrument: instrument.value });
+  const input = () => ({ abc: editor.value, instrument: instrument.value });
   async function run(action, message = '') {
     if (busy) return;
     if (timer) draw();
@@ -173,23 +173,23 @@ function scoresPanel(ctx) {
       const before = input(), sequence = localSequence;
       const saved = await ctx.invoke('save', [{ ...before, id: state.id, expectedRevision: state.revision }]);
       if (ctx.signal.aborted || sequence !== localSequence) return;
-      state.id = saved.id; state.revision = saved.revision; state.savedAbc = saved.abc; state.savedTitle = saved.title; state.savedInstrument = saved.instrument;
-      if (editor.value === before.abc && title.value === before.title) { editor.value = saved.abc; title.value = saved.title; }
+      state.id = saved.id; state.revision = saved.revision; state.savedAbc = saved.abc; state.savedInstrument = saved.instrument;
+      if (editor.value === before.abc) editor.value = saved.abc;
       await reload(); scoreSelect.value = saved.id; stash(); say(t('saved'));
     });
   }
   async function check() { return run(async () => { const result = await ctx.invoke('check', [input()]); say(`${result.notes} 音 · ${result.voices} 声部 · ${duration(result.seconds)} · ABC ✓`); }); }
-  async function preview() { return run(async () => { await playback.play(() => ctx.invokeBinary('preview', [input()]), title.value); say(''); }, t('generating')); }
+  async function preview() { return run(async () => { await playback.play(() => ctx.invokeBinary('preview', [input()]), scoreTitle(editor.value)); say(''); }, t('generating')); }
   async function render() {
     return run(async () => {
       if (dirty() || !state.id) {
         const before = input();
         const saved = await ctx.invoke('save', [{ ...before, id: state.id, expectedRevision: state.revision }]);
-        state.id = saved.id; state.revision = saved.revision; state.savedAbc = saved.abc; state.savedTitle = saved.title; state.savedInstrument = saved.instrument;
+        state.id = saved.id; state.revision = saved.revision; state.savedAbc = saved.abc; state.savedInstrument = saved.instrument;
         if (editor.value === before.abc) editor.value = saved.abc;
         stash();
       }
-      const item = await ctx.invoke('render', [{ score: state.id, title: title.value }]);
+      const item = await ctx.invoke('render', [{ score: state.id }]);
       say(`${t('rendered')} ${duration(item.seconds)}`); await reload();
     }, t('generating'));
   }
@@ -203,9 +203,9 @@ function scoresPanel(ctx) {
     if (!hasLoaded) {
       const draft = ctx.memo.get('draft', null);
       if (draft) {
-        const draftDirty = draft.abc.trim() !== draft.savedAbc || draft.title !== draft.savedTitle || draft.instrument !== draft.savedInstrument;
+        const draftDirty = draft.abc.trim() !== draft.savedAbc || draft.instrument !== draft.savedInstrument;
         if (draft.id && items.some(one => one.id === draft.id)) setEditor(draftDirty ? draft : await ctx.invoke('get', [draft.id]));
-        else setEditor({ ...draft, id: '', revision: '', savedAbc: '', savedTitle: '', savedInstrument: '' });
+        else setEditor({ ...draft, id: '', revision: '', savedAbc: '', savedInstrument: '' });
       }
       else if (items.length) setEditor(await ctx.invoke('get', [items[0].id]));
       else setEditor(blankScore(data.state.instrument));
@@ -217,12 +217,8 @@ function scoresPanel(ctx) {
     stash(); clearTimeout(timer);
     if (!event.isComposing) timer = setTimeout(draw, 500);
   }
-  const editSource = event => { title.value = scoreTitle(editor.value); scheduleDraw(event); };
-  const editTitle = event => { editor.value = withScoreTitle(editor.value, title.value); scheduleDraw(event); };
-  listen(ctx, editor, 'input', editSource);
-  listen(ctx, editor, 'compositionend', editSource);
-  listen(ctx, title, 'input', editTitle);
-  listen(ctx, title, 'compositionend', editTitle);
+  listen(ctx, editor, 'input', scheduleDraw);
+  listen(ctx, editor, 'compositionend', scheduleDraw);
   listen(ctx, instrument, 'change', () => { playback.stop(); follower?.update(false); controls(); stash(); });
   listen(ctx, scoreSelect, 'change', async () => {
     const id = scoreSelect.value;
