@@ -193,7 +193,7 @@ test('bad tool parameters do not create records', async t => {
 test('extension constructor has no filesystem effects and shares no old tool names', t => {
   const dir = join(scratch(t), 'uncreated'), world = def.create({ dataDir: dir });
   assert.equal(def.id, 'music-abc'); world.webUi(); assert.equal(existsSync(dir), false);
-  assert.deepEqual(world.webUi().panels.map(one => one.id), ['scores', 'works', 'instruments']);
+  assert.deepEqual(world.webUi().panels.map(one => one.id), ['scores', 'works', 'instruments', 'tools']);
   assert.ok(world.tools().every(tool => tool.name.startsWith('abc_music_')));
 });
 test('score updates are pushed, and closing a panel removes its subscription', async t => {

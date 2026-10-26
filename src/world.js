@@ -9,6 +9,7 @@ import { SoundfontLibrary } from './soundfonts.js';
 import { LEGACY_INSTRUMENTS } from './instruments.js';
 import { MusicStore } from './store.js';
 import { openFolder } from './open-folder.js';
+import { ToolTextStore } from './tool-text.js';
 
 export const EVENT_TYPE = 'music-abc.played';
 const AUDITION_ABC = 'X:1\nM:2/4\nL:1/4\nQ:1/4=120\nK:C\nC2 |]';
@@ -37,9 +38,10 @@ export const TOOLS = [
 ];
 
 export class AbcMusicWorld {
-  constructor({ cfg, dataDir, persist } = {}) {
+  constructor({ cfg, dataDir, persist, botDir, packageDir } = {}) {
     this.id = ID; this.cfg = cfg ?? { ...DEFAULTS }; this.dataDir = dataDir ?? process.cwd();
     this.persist = persist; this.host = null; this.language = 'zh';
+    this.toolText = new ToolTextStore(TOOLS, { botDir, packageDir, id: ID });
     this.store = new MusicStore(join(this.dataDir, ID));
     this.library = new SoundfontLibrary(this.store.dir, () => this.changed());
     this.migrationError = '';
@@ -121,7 +123,7 @@ export class AbcMusicWorld {
     return { text: `${receipt}\n已交付 ${EVENT_TYPE}（${this.value('eventDelivery')}）。` };
   }
   tools() {
-    return TOOLS.map((tool, index) => ({ ...tool, handler: async (args = {}) => {
+    return this.toolText.resolve().map((tool, index) => ({ ...tool, handler: async (args = {}) => {
       try {
         if (index === 0) return await this.scoreTool(args);
         if (index === 1) return await this.playTool(args);
@@ -142,6 +144,11 @@ export class AbcMusicWorld {
   }
   async invoke(panel, method, args = []) {
     const input = args[0] ?? {};
+    if (panel === 'tools') {
+      if (method === 'list') return this.toolText.read();
+      if (method === 'save') return this.toolText.save(input);
+      if (method === 'reset') return this.toolText.reset(input);
+    }
     if (panel === 'scores') {
       if (method === 'list') { await this.library.refresh(); return { items: this.store.listScores(), state: this.status(), fonts: this.library.fonts, instruments: this.library.items(), aliases: this.aliases() }; }
       if (method === 'get') { const score = this.store.score(input); if (!score) throw new Error('找不到曲谱。'); return score; }
@@ -175,7 +182,7 @@ export class AbcMusicWorld {
       label: en ? 'ABC Music' : LABEL,
       lamps: [{ label: en ? 'SoundFont' : '采样音源', state: state.download && !state.download.error ? 'loading' : (state.soundfontError ? 'offline' : (state.busy ? 'loading' : 'online')), hint: state.soundfontError || basename(state.soundfont) }],
       badges: [{ label: en ? 'Scores' : '乐谱', value: state.scores, tone: 'on' }, { label: en ? 'Works' : '作品', value: state.works, tone: 'on' }, { label: en ? 'Instrument' : '乐器', value: state.instrumentLabel || (en ? 'None' : '未选择'), tone: 'plain' }],
-      panels: [{ id: 'scores', title: en ? 'Scores' : '乐谱', getMethods: ['list', 'get'] }, { id: 'works', title: en ? 'Works' : '作品', getMethods: ['list', 'get'] }, { id: 'instruments', title: en ? 'Instruments' : '乐器', getMethods: ['list'] }],
+      panels: [{ id: 'scores', title: en ? 'Scores' : '乐谱', getMethods: ['list', 'get'] }, { id: 'works', title: en ? 'Works' : '作品', getMethods: ['list', 'get'] }, { id: 'instruments', title: en ? 'Instruments' : '乐器', getMethods: ['list'] }, { id: 'tools', title: en ? 'Tools' : '工具', getMethods: ['list'] }],
       config: [configGroup(language)],
       promptDocs: [{ key: `worlds.${ID}.env`, title: en ? 'Prompt' : '提示词', path: fileURLToPath(new URL('./ENV_PROMPT.md', import.meta.url)), role: 'envPrompt' }],
       invoke: (panel, method, args) => this.invoke(panel, method, args),

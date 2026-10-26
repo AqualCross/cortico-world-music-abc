@@ -1,7 +1,7 @@
 import bundle from '/webui.js';
 let active = null, guard = null, toastTimer;
 const tabs = document.querySelector('#tabs'), panel = document.querySelector('#panel');
-const titles = { scores: '乐谱', works: '作品', instruments: '乐器' };
+const titles = { scores: '乐谱', works: '作品', instruments: '乐器', tools: '工具' };
 async function refresh() {
   const manifest = await (await fetch('/manifest')).json();
   const badges = document.querySelector('#badges'); badges.replaceChildren();
@@ -16,7 +16,7 @@ function confirm({ title, body }) {
   });
 }
 async function mount(id) {
-  if (guard?.() && !await confirm({ title: '离开当前乐谱？', body: guard() })) return;
+  if (guard?.() && !await confirm({ title: '离开当前页面？', body: guard() })) return;
   active?.dispose(); panel.replaceChildren(); guard = null;
   for (const button of tabs.children) button.classList.toggle('active', button.dataset.panel === id);
   const controller = new AbortController(), owned = [];

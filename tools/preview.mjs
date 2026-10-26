@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import def from '../src/index.js';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-const world = def.create({ cfg: { ...def.defaults(), enabled: true }, dataDir: join(root, '.preview-data'), persist: () => {} });
+const world = def.create({ cfg: { ...def.defaults(), enabled: true }, botDir: join(root, '.preview-data'), dataDir: join(root, '.preview-data'), persist: () => {} });
 await world.start({ log: { info: console.log } });
 const server = createServer(async (request, response) => {
   const url = new URL(request.url, 'http://127.0.0.1');
@@ -18,7 +18,7 @@ const server = createServer(async (request, response) => {
     if (request.method === 'GET' && url.pathname === '/manifest') {
       response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify(world.webUi('zh'))); return;
     }
-    const match = /^\/api\/(scores|works|instruments)\/([a-zA-Z]+)$/.exec(url.pathname);
+    const match = /^\/api\/(scores|works|instruments|tools)\/([a-zA-Z]+)$/.exec(url.pathname);
     if (request.method === 'POST' && match) {
       const origin = request.headers.origin;
       if (origin && origin !== `http://${request.headers.host}`) throw new Error('Invalid origin');

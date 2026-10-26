@@ -2,6 +2,7 @@ import abcjs from 'abcjs';
 import { STYLE } from './style.js';
 import { followScore } from './score-follow.js';
 import { scoreTitle, withScoreTitle } from './score-title.js';
+import { mountTools } from './tool-text-panel.js';
 
 const words = {
   works: ['作品', 'Works'],
@@ -352,4 +353,4 @@ function instrumentsPanel(ctx) {
   subscribe(ctx, reload); void reload().catch(error => ctx.ui.toast(msg(error), 'bad'));
 }
 
-export default { panels: { scores: { mount: scoresPanel }, works: { mount: worksPanel }, instruments: { mount: instrumentsPanel } } };
+export default { panels: { scores: { mount: scoresPanel }, works: { mount: worksPanel }, instruments: { mount: instrumentsPanel }, tools: { mount: mountTools } } };

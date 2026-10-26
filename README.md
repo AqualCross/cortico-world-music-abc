@@ -1,4 +1,4 @@
-# ABC Music — src/index.js, src/world.js, web/panels.js
+# ABC Music — src/index.js, src/world.js, src/tool-text.js, web/panels.js, web/tool-text-panel.js
 
 [中文](README_zh.md)
 
@@ -17,6 +17,9 @@ No SoundFont samples are included. In Instruments, select **Get GeneralUser GS**
 - **Scores:** create, edit, validate and save ABC scores, select an instrument, audition or render audio. Title edits synchronize with the first `T:` header. Sheet music updates after 500 ms without input. Unsaved drafts are retained in the current browser. With no saved scores or draft, the editor starts with rests. Validation and saving work without a SoundFont.
 - **Works:** play recordings, download WAV / MIDI / ABC, copy the audio path, or open the output folder. Expand a work to view its original ABC snapshot. Editing or deleting the source score does not change the snapshot or recording. Yellow highlighting follows playback, seeks and pauses in both score views.
 - **Instruments:** one collapsible group per SoundFont file, initially closed. Select the file heading to expand or collapse it; the current browser remembers expanded groups. Expanded groups show all their presets, bank variants and drum kits. Search opens matching groups; clearing it restores the previous state. Audition a single C note and set the default instrument. Import copies a file into the data directory and preserves the original. Files with different contents and the same filename must be renamed before import. Alternatively, place files in the directory and select Refresh.
+- **Tools:** inspect all three tools and their full JSON Schema; edit tool descriptions and schema descriptions or existing titles, including nested fields. View inherited text, restore individual fields, or remove all deployment overrides. Unsaved edits are guarded when leaving; concurrent saves require a refresh.
+
+Tool text is read from extension defaults, optional `<bot package>/worlds/music-abc/tool-text.json`, then `<deployment>/worlds/music-abc/tool-text.json`. Only changed text fields are stored, keyed by tool name and JSON pointer; tool names, parameter structure and execution remain unchanged. Saving uses the deployment file only. Saved text is used the next time a session builds its tool definitions; saving leaves the current session intact. Old field paths are reported and ignored, and remain in the file until overrides are removed. Invalid deployment files use inherited text and must be reset or corrected before saving.
 
 SoundFonts live directly in `<World dataDir>/music-abc/`, corresponding to `Coopanion/data/home/companion/data/music-abc/`. Scores are indexed in `index.json`; recordings and their MIDI / ABC files live in `works/`. Preset IDs include the filename and MIDI patch; renaming a SoundFont requires selecting the preset again. Removing a SoundFont does not prevent playback of existing WAV recordings.
 
