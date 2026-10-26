@@ -2,6 +2,8 @@
 
 [中文](README_zh.md)
 
+<img src="assets/icon.png" alt="ABC Music" width="128" height="128">
+
 Let Coo compose music with ABC notation.
 
 ## Install
